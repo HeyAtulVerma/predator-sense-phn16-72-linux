@@ -1,0 +1,36 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Laptop model
+      description: "`cat /sys/class/dmi/id/product_name`"
+    validations:
+      required: true
+  - type: input
+    id: kernel
+    attributes:
+      label: Kernel and distribution
+      description: "`uname -r` and distro"
+    validations:
+      required: true
+  - type: textarea
+    id: info
+    attributes:
+      label: predatorctl info
+      render: json
+  - type: textarea
+    id: logs
+    attributes:
+      label: Service log
+      description: "`journalctl -u predator-sensed -b --no-pager | tail -n 100`"
+      render: text

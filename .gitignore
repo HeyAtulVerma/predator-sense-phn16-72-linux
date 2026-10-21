@@ -1,0 +1,11 @@
+build/
+kernel/*.o
+kernel/*.ko
+kernel/*.mod*
+kernel/.*.cmd
+kernel/Module.symvers
+kernel/modules.order
+kernel/.tmp_versions/
+packaging/arch/src/
+packaging/arch/pkg/
+packaging/arch/*.pkg.tar.*

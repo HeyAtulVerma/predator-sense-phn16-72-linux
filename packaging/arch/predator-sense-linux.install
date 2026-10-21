@@ -1,0 +1,13 @@
+post_install() {
+    systemctl daemon-reload
+    modprobe predator_wmi 2>/dev/null || true
+    systemctl enable --now predator-sensed.service || true
+}
+post_upgrade() {
+    systemctl daemon-reload
+    systemctl try-restart predator-sensed.service || true
+}
+pre_remove() {
+    systemctl disable --now predator-sensed.service || true
+    modprobe -r predator_wmi 2>/dev/null || true
+}

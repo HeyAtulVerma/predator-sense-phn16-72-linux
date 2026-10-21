@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Service, CLI and app
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel cmake ninja qt6-base qt6-declarative qt6-svg qt6-tools dbus python
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+      - name: Build
+        run: cmake --build build
+      - name: End-to-end test (simulated firmware)
+        run: ctest --test-dir build --output-on-failure
+
+  kernel:
+    name: Kernel module (${{ matrix.headers }})
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        headers: [linux-headers, linux-lts-headers]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install headers
+        run: pacman -Syu --noconfirm --needed base-devel ${{ matrix.headers }} clang llvm lld
+      - name: Build module
+        run: |
+          for kver in $(ls /usr/lib/modules); do
+            [ -d "/usr/lib/modules/$kver/build" ] || continue
+            echo "::group::$kver"
+            make -C kernel KVER="$kver" EXTRA_CFLAGS=-Werror
+            modinfo kernel/predator_wmi.ko
+            make -C kernel KVER="$kver" clean
+            echo "::endgroup::"
+          done
+
+  package:
+    name: Arch package
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install dependencies
+        run: pacman -Syu --noconfirm --needed base-devel cmake ninja qt6-base qt6-declarative qt6-svg qt6-tools dkms polkit
+      - name: makepkg
+        run: |
+          useradd -m builder
+          chown -R builder .
+          su builder -c 'cd packaging/arch && makepkg --nodeps --noconfirm'
+          ls -l packaging/arch/*.pkg.tar.*
+
+  lint:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: shellcheck tests/*.sh

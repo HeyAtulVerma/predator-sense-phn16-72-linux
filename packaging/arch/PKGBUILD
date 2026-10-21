@@ -1,0 +1,32 @@
+# Builds from the local source tree: cd packaging/arch && makepkg -si
+pkgname=predator-sense-linux
+pkgver=0.9.0
+pkgrel=1
+pkgdesc="Predator Sense for Linux: performance modes, fans, RGB keyboard and battery for Acer Predator laptops"
+arch=('x86_64')
+url="https://github.com/aishend/predator-sense-phn16-72-linux"
+license=('GPL-2.0-or-later')
+depends=('dkms' 'qt6-base' 'qt6-declarative' 'qt6-svg' 'polkit' 'dbus')
+optdepends=('nvidia-utils: GPU monitoring and the Acer GPU overclock profile per mode'
+            'linux-headers: needed by DKMS to build predator_wmi (use the headers of your kernel)')
+makedepends=('cmake' 'ninja' 'qt6-tools')
+install=predator-sense-linux.install
+_root="$startdir/../.."
+
+build() {
+    cmake -S "$_root" -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+          -DCMAKE_INSTALL_LIBEXECDIR=lib
+    cmake --build build
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    # DKMS source of the kernel module
+    local dst="$pkgdir/usr/src/predator-wmi-$pkgver"
+    install -Dm644 "$_root"/kernel/{predator_wmi.c,predator_wmi_uapi.h,Makefile,dkms.conf} -t "$dst"
+    sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=\"$pkgver\"/" "$dst/dkms.conf"
+    install -Dm644 "$_root/data/predator-wmi.conf" "$pkgdir/usr/lib/modules-load.d/predator-wmi.conf"
+    install -Dm644 "$_root/data/predator-sense-autostart.desktop" "$pkgdir/etc/xdg/autostart/predator-sense.desktop"
+    install -Dm644 "$_root/README.md" "$pkgdir/usr/share/doc/predator-sense/README.md"
+    install -Dm644 "$_root/docs/REVERSE_ENGINEERING.md" "$pkgdir/usr/share/doc/predator-sense/REVERSE_ENGINEERING.md"
+}

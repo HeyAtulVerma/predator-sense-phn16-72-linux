@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Predator Sense
+GenericName=Laptop control center
+GenericName[pt]=Centro de controlo do portátil
+GenericName[pt_BR]=Central de controle do notebook
+Comment=Performance modes, fans, RGB keyboard and battery for Acer Predator laptops
+Comment[pt]=Modos de desempenho, ventoinhas, teclado RGB e bateria para portáteis Acer Predator
+Exec=predator-sense
+Icon=predator-sense
+Terminal=false
+Categories=System;Settings;HardwareSettings;
+Keywords=acer;predator;fan;rgb;turbo;battery;
+StartupWMClass=predator-sense

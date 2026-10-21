@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Predator Sense
+Exec=predator-sense --hidden
+Icon=predator-sense
+X-GNOME-Autostart-enabled=true
+NoDisplay=true
