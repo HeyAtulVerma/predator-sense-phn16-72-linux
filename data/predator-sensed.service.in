@@ -7,7 +7,7 @@ ConditionPathExistsGlob=/sys/bus/wmi/devices/7A4DDFE7-5B5D-40B4-8595-4408E0CC7F5
 [Service]
 Type=dbus
 BusName=org.predatorsense.Daemon
-ExecStartPre=-/usr/bin/modprobe predator_wmi
+ExecStartPre=-modprobe predator_wmi
 ExecStart=@CMAKE_INSTALL_FULL_LIBEXECDIR@/predator-sensed
 Restart=on-failure
 RestartSec=2

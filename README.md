@@ -98,28 +98,37 @@ notifications, so the desktop power-profile switch (power-profiles-daemon) also 
 
 ## Installation
 
-### Arch Linux / CachyOS
+Works on any distribution with systemd (or elogind), Qt ≥ 6.4, DKMS and the headers of your kernel.
+One installer covers the main families; it installs the dependencies, builds, runs the tests, registers the
+kernel module with DKMS (rebuilt automatically on every kernel update) and enables the service:
 
 ```bash
 git clone https://github.com/aishend/predator-sense-phn16-72-linux.git
-cd predator-sense-phn16-72-linux/packaging/arch
-makepkg -si
+cd predator-sense-phn16-72-linux
+tools/install.sh
 ```
 
-This installs the kernel module through **DKMS** (rebuilt automatically for every new kernel, including clang-built
-kernels such as CachyOS), the service (enabled and started), the app and the CLI. Make sure the headers of your
-kernel are installed (`linux-cachyos-headers`, `linux-headers`, …).
+| Family | Tested in CI | Notes |
+|---|---|---|
+| Arch, CachyOS, Manjaro, EndeavourOS | Arch | builds a real pacman package (`packaging/arch`); clang-built kernels supported |
+| Fedora, Nobara | Fedora (latest) | |
+| Debian 12+, Ubuntu 24.04+, Mint, Pop!_OS | Debian 12, Ubuntu 24.04 | Qt 6.4 is enough |
+| openSUSE Tumbleweed | Tumbleweed | |
+
+Remove it again with `tools/uninstall.sh` (or `sudo pacman -R predator-sense-linux` on Arch).
+
+**Secure Boot:** out-of-tree modules must be signed. Ubuntu/Debian DKMS signs them after you enroll the key it
+offers (one reboot); on Fedora/openSUSE follow your distribution's DKMS signing guide or disable Secure Boot.
+Immutable systems (Silverblue, SteamOS, Bazzite…) are not supported yet.
 
 The in-kernel `acer_wmi` driver handles the Predator mode key and hotkeys; make sure it is not blacklisted
 (`grep -r acer_wmi /etc/modprobe.d/`).
 
-### Other distributions (manual)
-
-Requirements: CMake ≥ 3.21, Qt ≥ 6.5 (Base, Declarative, Svg, DBus), DKMS, kernel headers, polkit.
+### Manual build
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBEXECDIR=lib
-cmake --build build
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+cmake --build build && ctest --test-dir build
 sudo cmake --install build
 sudo cp -r kernel /usr/src/predator-wmi-0.9.0 && sudo dkms install predator-wmi/0.9.0
 echo predator_wmi | sudo tee /etc/modules-load.d/predator-wmi.conf

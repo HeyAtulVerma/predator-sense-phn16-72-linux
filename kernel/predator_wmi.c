@@ -21,6 +21,7 @@
 #include <linux/mutex.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <linux/version.h>
 #include <linux/wmi.h>
 
 #include "predator_wmi_uapi.h"
@@ -220,7 +221,9 @@ static struct wmi_driver predator_wmi_driver = {
 	.id_table    = predator_wmi_ids,
 	.probe       = predator_probe,
 	.remove      = predator_remove,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)
 	.no_singleton = true,
+#endif
 };
 
 static int __init predator_init(void)

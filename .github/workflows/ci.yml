@@ -8,43 +8,62 @@ on:
 
 jobs:
   build:
-    name: Service, CLI and app
+    name: Build and test (${{ matrix.image }})
     runs-on: ubuntu-latest
-    container: archlinux:latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [archlinux:latest, debian:12, ubuntu:24.04, fedora:latest, opensuse/tumbleweed]
     steps:
-      - uses: actions/checkout@v5
-      - name: Install dependencies
+      - name: Install git and sudo-less helpers
         run: |
-          pacman -Syu --noconfirm --needed base-devel cmake ninja qt6-base qt6-declarative qt6-svg qt6-tools dbus python
+          if command -v apt-get >/dev/null; then apt-get update -qq && apt-get install -y -qq git ca-certificates; fi
+          if command -v dnf >/dev/null; then dnf install -y git-core; fi
+          if command -v zypper >/dev/null; then zypper --non-interactive install git-core tar gzip; fi
+          if command -v pacman >/dev/null; then pacman -Syu --noconfirm --needed git; fi
+      - uses: actions/checkout@v5
+      - name: Install dependencies with tools/install.sh
+        run: tools/install.sh --deps-only --no-kernel --yes
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
       - name: Build
         run: cmake --build build
-      - name: End-to-end test (simulated firmware)
+      - name: Tests (SMBIOS parser, end-to-end with simulated firmware)
         run: ctest --test-dir build --output-on-failure
+      - name: Install into a staging directory
+        run: DESTDIR=$PWD/stage cmake --install build && find stage -type f | sort
 
   kernel:
-    name: Kernel module (${{ matrix.headers }})
+    name: Kernel module (${{ matrix.name }})
     runs-on: ubuntu-latest
-    container: archlinux:latest
+    container: ${{ matrix.image }}
     strategy:
       fail-fast: false
       matrix:
-        headers: [linux-headers, linux-lts-headers]
+        include:
+          - { name: arch, image: "archlinux:latest", deps: "pacman -Syu --noconfirm --needed base-devel linux-headers clang llvm lld" }
+          - { name: arch-lts, image: "archlinux:latest", deps: "pacman -Syu --noconfirm --needed base-devel linux-lts-headers" }
+          - { name: ubuntu-24.04, image: "ubuntu:24.04", deps: "apt-get update -qq && apt-get install -y -qq build-essential linux-headers-generic kmod" }
+          - { name: fedora, image: "fedora:latest", deps: "dnf install -y gcc make kernel-devel elfutils-libelf-devel kmod" }
     steps:
       - uses: actions/checkout@v5
       - name: Install headers
-        run: pacman -Syu --noconfirm --needed base-devel ${{ matrix.headers }} clang llvm lld
-      - name: Build module
+        run: ${{ matrix.deps }}
+      - name: Build module against every installed kernel tree
         run: |
-          for kver in $(ls /usr/lib/modules); do
-            [ -d "/usr/lib/modules/$kver/build" ] || continue
-            echo "::group::$kver"
-            make -C kernel KVER="$kver" EXTRA_CFLAGS=-Werror
-            modinfo kernel/predator_wmi.ko
-            make -C kernel KVER="$kver" clean
+          set -e
+          n=0
+          for kdir in /usr/lib/modules/*/build /usr/src/kernels/*; do
+            [ -f "$kdir/Makefile" ] || continue
+            echo "::group::$kdir"
+            make -C kernel KDIR="$kdir" EXTRA_CFLAGS=-Werror
+            modinfo kernel/predator_wmi.ko | grep -E 'vermagic|alias'
+            make -C kernel KDIR="$kdir" clean
             echo "::endgroup::"
+            n=$((n+1))
           done
+          [ $n -gt 0 ]
 
   package:
     name: Arch package
@@ -66,4 +85,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: shellcheck tests/*.sh
+      - run: shellcheck tests/*.sh tools/*.sh

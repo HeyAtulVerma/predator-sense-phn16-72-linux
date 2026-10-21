@@ -1,5 +1,5 @@
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Widgets DBus Svg)
-qt_standard_project_setup(REQUIRES 6.5)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Quick QuickControls2 Widgets DBus Svg)
+qt_standard_project_setup()
 if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
@@ -10,6 +10,7 @@ set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(predator-sense
     URI PredatorSense
     VERSION 1.0
+    RESOURCE_PREFIX /qt/qml
     QML_FILES
         qml/Main.qml qml/Theme.qml qml/HomePage.qml qml/FanPage.qml qml/LightingPage.qml
         qml/MonitorPage.qml qml/SettingsPage.qml qml/Card.qml qml/NavButton.qml qml/Gauge.qml

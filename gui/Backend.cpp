@@ -7,6 +7,7 @@
 #include <QDBusVariant>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSettings>
 
 static QDBusConnection predatorBus()
 {
@@ -153,4 +154,19 @@ void Backend::setLighting(const QVariantMap &l) { callAsync(QStringLiteral("SetK
 void Backend::setOption(const QString &key, const QVariant &value)
 {
     callAsync(QStringLiteral("SetOption"), {key, QVariant::fromValue(QDBusVariant(value))});
+}
+
+bool Backend::closeToTray() const { return QSettings().value(QStringLiteral("ui/closeToTray"), true).toBool(); }
+bool Backend::fahrenheit() const { return QSettings().value(QStringLiteral("ui/fahrenheit"), false).toBool(); }
+
+void Backend::setCloseToTray(bool on)
+{
+    QSettings().setValue(QStringLiteral("ui/closeToTray"), on);
+    Q_EMIT prefsChanged();
+}
+
+void Backend::setFahrenheit(bool on)
+{
+    QSettings().setValue(QStringLiteral("ui/fahrenheit"), on);
+    Q_EMIT prefsChanged();
 }

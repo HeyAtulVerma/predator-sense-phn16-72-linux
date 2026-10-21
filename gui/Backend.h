@@ -16,6 +16,9 @@ class Backend : public QObject
     Q_PROPERTY(QVariantMap sensors READ sensors NOTIFY sensorsChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(bool monitoring READ monitoring WRITE setMonitoring NOTIFY monitoringChanged)
+    // UI preferences (per user, ~/.config/predator-sense/predator-sense.conf)
+    Q_PROPERTY(bool closeToTray READ closeToTray WRITE setCloseToTray NOTIFY prefsChanged)
+    Q_PROPERTY(bool fahrenheit READ fahrenheit WRITE setFahrenheit NOTIFY prefsChanged)
 
 public:
     explicit Backend(QObject *parent = nullptr);
@@ -27,6 +30,10 @@ public:
     bool busy() const { return m_pending > 0; }
     bool monitoring() const { return m_sensorTimer.isActive(); }
     void setMonitoring(bool on);
+    bool closeToTray() const;
+    void setCloseToTray(bool on);
+    bool fahrenheit() const;
+    void setFahrenheit(bool on);
 
     Q_INVOKABLE void setMode(int mode);
     Q_INVOKABLE void setBatteryMode(int mode);
@@ -43,6 +50,7 @@ Q_SIGNALS:
     void sensorsChanged();
     void busyChanged();
     void monitoringChanged();
+    void prefsChanged();
     void errorOccurred(const QString &message);
 
 private Q_SLOTS:

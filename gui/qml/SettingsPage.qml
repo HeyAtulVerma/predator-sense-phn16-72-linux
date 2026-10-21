@@ -105,11 +105,11 @@ ScrollView {
                 OptionRow {
                     title: qsTr("Fechar para a bandeja do sistema")
                     description: qsTr("A janela fecha mas o ícone continua na bandeja para trocar de modo rapidamente.")
-                    PSwitch { checked: prefs.closeToTray; onToggled: prefs.closeToTray = checked }
+                    PSwitch { checked: backend.closeToTray; onToggled: backend.closeToTray = checked }
                 }
                 OptionRow {
                     title: qsTr("Temperatura em Fahrenheit")
-                    PSwitch { checked: prefs.fahrenheit; onToggled: prefs.fahrenheit = checked }
+                    PSwitch { checked: backend.fahrenheit; onToggled: backend.fahrenheit = checked }
                 }
             }
         }

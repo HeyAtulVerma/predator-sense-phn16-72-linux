@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import QtCore
 
 ApplicationWindow {
     id: win
@@ -19,21 +18,14 @@ ApplicationWindow {
     readonly property var st: backend.state
     readonly property var sn: backend.sensors
 
-    Settings {
-        id: prefs
-        category: "ui"
-        property bool closeToTray: true
-        property bool fahrenheit: false
-    }
-
     function temp(c) {
         if (c === undefined || c === null) return "—"
-        return prefs.fahrenheit ? Math.round(c * 9 / 5 + 32) : Math.round(c)
+        return backend.fahrenheit ? Math.round(c * 9 / 5 + 32) : Math.round(c)
     }
-    readonly property string tempUnit: prefs.fahrenheit ? "°F" : "°C"
+    readonly property string tempUnit: backend.fahrenheit ? "°F" : "°C"
 
     onClosing: (close) => {
-        if (prefs.closeToTray && trayAvailable) {
+        if (backend.closeToTray && trayAvailable) {
             close.accepted = false
             win.hide()
         }

@@ -37,19 +37,26 @@ Modos de funcionamento · controlo das ventoinhas (Auto/Máx/Personalizado) · t
 limite de carga 80 % · calibração da bateria · carregamento USB desligado · animação/som de arranque · LCD overdrive ·
 monitorização (temperaturas e RPM do EC, CPU/RAM/GPU) · ícone na bandeja · tecla de modo · restauro após suspensão · CLI `predatorctl`.
 
-## Instalação (Arch / CachyOS)
+## Instalação
+
+Funciona em qualquer distribuição com systemd (ou elogind), Qt ≥ 6.4, DKMS e os headers do kernel. Um único
+instalador cobre as principais famílias — instala dependências, compila, corre os testes, regista o módulo no DKMS
+(recompilado sozinho a cada atualização do kernel) e ativa o serviço:
 
 ```bash
 git clone https://github.com/aishend/predator-sense-phn16-72-linux.git
-cd predator-sense-phn16-72-linux/packaging/arch
-makepkg -si
+cd predator-sense-phn16-72-linux
+tools/install.sh
 ```
+
+Testado no CI em Arch/CachyOS (gera pacote pacman), Fedora, Debian 12, Ubuntu 24.04 e openSUSE Tumbleweed.
+Para remover: `tools/uninstall.sh` (no Arch: `sudo pacman -R predator-sense-linux`).
+
+Com **Secure Boot** o módulo tem de ser assinado: no Ubuntu/Debian o DKMS assina depois de registar a chave que
+propõe (um reinício); no Fedora/openSUSE siga o guia de assinatura DKMS da distribuição.
 
 O driver `acer_wmi` do kernel trata a tecla de modo e as teclas de atalho; confirme que não está bloqueado
 (`grep -r acer_wmi /etc/modprobe.d/`).
-
-O módulo do kernel é instalado via DKMS e recompilado automaticamente a cada kernel novo (incluindo kernels
-compilados com clang, como os do CachyOS). Tenha os headers do seu kernel instalados.
 
 ## Uso
 

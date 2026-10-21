@@ -1,5 +1,5 @@
 [D-BUS Service]
 Name=org.predatorsense.Daemon
-Exec=/bin/false
+Exec=@CMAKE_INSTALL_FULL_LIBEXECDIR@/predator-sensed
 User=root
 SystemdService=predator-sensed.service

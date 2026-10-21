@@ -11,6 +11,9 @@ All notable changes to this project are documented here. The format follows
 - `GetGamingKBBacklight` and `SetBatteryHealthControl` results parsed with the layouts declared by the MOF.
 
 ### Added
+- `tools/install.sh` / `tools/uninstall.sh` for Arch, Fedora, Debian/Ubuntu and openSUSE families; CI builds and
+  tests on all of them, and builds the module against Arch, Ubuntu and Fedora kernels.
+- Qt 6.4 support (Debian 12, Ubuntu 24.04), kernels older than 6.9, D-Bus activation without systemd.
 - Static keyboard colours send the zone-mask `SetGamingLED` step used by AcerLightingService, with the buffer
   size chosen from the SMBIOS type 172 version.
 - Unit test with the real PHN16-72 SMBIOS OEM tables.

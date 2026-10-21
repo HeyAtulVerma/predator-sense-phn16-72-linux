@@ -13,6 +13,7 @@
 #include <QQuickWindow>
 #include <QSystemTrayIcon>
 #include <QTimer>
+#include <QUrl>
 #include <memory>
 
 // Single-instance helper on the session bus: a second launch raises the window.
@@ -55,7 +56,8 @@ int main(int argc, char **argv)
     engine.rootContext()->setContextProperty(QStringLiteral("startHidden"), startHidden && trayAvailable);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, [] { QCoreApplication::exit(1); },
                      Qt::QueuedConnection);
-    engine.loadFromModule("PredatorSense", "Main");
+    engine.addImportPath(QStringLiteral("qrc:/qt/qml"));
+    engine.load(QUrl(QStringLiteral("qrc:/qt/qml/PredatorSense/qml/Main.qml")));
     if (engine.rootObjects().isEmpty())
         return 1;
     auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
