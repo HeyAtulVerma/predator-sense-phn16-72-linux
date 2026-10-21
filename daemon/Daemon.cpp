@@ -344,12 +344,16 @@ void Daemon::watchPlatformProfile()
     if (m_profileFd < 0 || m_opt.simulate)
         return;
     char buf[64];
-    (void)::read(m_profileFd, buf, sizeof buf); // arm the notification
+    if (::read(m_profileFd, buf, sizeof buf) < 0) { // arms the notification
+        ::close(m_profileFd);
+        m_profileFd = -1;
+        return;
+    }
     m_profileNotifier = new QSocketNotifier(m_profileFd, QSocketNotifier::Exception, this);
     connect(m_profileNotifier, &QSocketNotifier::activated, this, [this] {
         char b[64];
-        ::lseek(m_profileFd, 0, SEEK_SET);
-        (void)::read(m_profileFd, b, sizeof b);
+        if (::lseek(m_profileFd, 0, SEEK_SET) < 0 || ::read(m_profileFd, b, sizeof b) < 0)
+            return;
         if (checkMode())
             Q_EMIT stateChanged();
     });

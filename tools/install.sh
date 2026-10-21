@@ -28,6 +28,7 @@ say() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m %s\n' "$*" >&2; }
 
 # ------------------------------------------------------------------ distribution
+# shellcheck source=/dev/null
 . /etc/os-release
 FAMILY=""
 for id in $ID ${ID_LIKE:-}; do
@@ -61,7 +62,9 @@ case "$FAMILY" in
         [ $NO_KERNEL -eq 1 ] || PKGS="$PKGS dkms linux-headers-$KREL"
         INSTALL="apt-get install"; [ $YES -eq 1 ] && INSTALL="env DEBIAN_FRONTEND=noninteractive apt-get install -y" ;;
     suse)
-        PKGS="gcc-c++ cmake ninja pkgconf systemd-devel qt6-base-devel qt6-declarative-devel qt6-quickcontrols2-devel qt6-svg-devel dbus-1 polkit python3"
+        PKGS="gcc-c++ cmake ninja pkgconf systemd-devel qt6-core-devel qt6-gui-devel qt6-widgets-devel qt6-dbus-devel
+              qt6-qml-devel qt6-quick-devel qt6-quickcontrols2-devel qt6-svg-devel qt6-declarative-tools qt6-declarative-imports
+              dbus-1 polkit python3"
         [ $NO_KERNEL -eq 1 ] || PKGS="$PKGS dkms kernel-devel kernel-default-devel"
         INSTALL="zypper install"; [ $YES -eq 1 ] && INSTALL="zypper --non-interactive install" ;;
 esac
@@ -70,10 +73,10 @@ esac
 if [ "$FAMILY" = arch ] && [ $DEPS_ONLY -eq 0 ] && [ $NO_KERNEL -eq 0 ]; then
     say "Arch-based system: building and installing a pacman package (packaging/arch)"
     cd packaging/arch
-    exec makepkg -si $([ $YES -eq 1 ] && echo --noconfirm)
+    if [ $YES -eq 1 ]; then exec makepkg -si --noconfirm; else exec makepkg -si; fi
 fi
 
-say "Packages: $(echo $PKGS | tr -s ' \n' ' ')"
+say "Packages: $(echo "$PKGS" | tr -s ' \n' ' ')"
 if [ $YES -eq 0 ]; then read -rp "Install them now? [Y/n] " ans; [[ "${ans:-y}" =~ ^[YySs]$ ]] || exit 1; fi
 [ "$FAMILY" = debian ] && $SUDO apt-get update -qq
 # shellcheck disable=SC2086

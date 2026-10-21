@@ -27,5 +27,5 @@ if [ -f "$MANIFEST" ]; then
 fi
 $SUDO rm -f /etc/modules-load.d/predator-wmi.conf /etc/xdg/autostart/predator-sense.desktop "$MANIFEST"
 $SUDO rmdir --ignore-fail-on-non-empty /usr/share/predator-sense/models /usr/share/predator-sense 2>/dev/null || true
-command -v systemctl >/dev/null && $SUDO systemctl daemon-reload 2>/dev/null || true
+if command -v systemctl >/dev/null; then $SUDO systemctl daemon-reload 2>/dev/null || true; fi
 echo "Predator Sense removed. Settings are kept in /var/lib/predator-sense (delete it to reset)."
