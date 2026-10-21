@@ -10,7 +10,7 @@
 #include <QJsonDocument>
 #include <QLoggingCategory>
 
-Q_LOGGING_CATEGORY(lcBus, "predator.dbus")
+Q_LOGGING_CATEGORY(lcBus, "predator.dbus", QtInfoMsg)
 
 namespace {
 struct PolkitSubject {

@@ -5,7 +5,7 @@
 #include <QLoggingCategory>
 #include <dlfcn.h>
 
-Q_LOGGING_CATEGORY(lcGpu, "predator.gpu")
+Q_LOGGING_CATEGORY(lcGpu, "predator.gpu", QtInfoMsg)
 
 namespace {
 using nvmlReturn_t = int;

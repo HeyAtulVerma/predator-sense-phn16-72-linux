@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-Q_LOGGING_CATEGORY(lcD, "predator.daemon")
+Q_LOGGING_CATEGORY(lcD, "predator.daemon", QtInfoMsg)
 
 using HW = AcerHardware;
 

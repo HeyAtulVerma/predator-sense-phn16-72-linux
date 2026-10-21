@@ -26,7 +26,8 @@ PREDATOR_SENSE_BUS=session ./build/gui/predator-sense
 make -C kernel                                       # kernel module
 ```
 
-Run with `QT_LOGGING_RULES="predator.*=true"` to see every WMI call.
+Debug messages are off by default. Run with `QT_LOGGING_RULES="predator.*.debug=true"` to see every WMI call; for the
+installed service use `sudo systemctl edit predator-sensed` and add `Environment=QT_LOGGING_RULES=predator.*.debug=true`.
 
 ## Rules for firmware code
 

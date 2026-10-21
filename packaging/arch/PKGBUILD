@@ -1,7 +1,7 @@
 # Builds from the local source tree: cd packaging/arch && makepkg -si
 pkgname=predator-sense-linux
 pkgver=0.9.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Predator Sense for Linux: performance modes, fans, RGB keyboard and battery for Acer Predator laptops"
 arch=('x86_64')
 url="https://github.com/aishend/predator-sense-phn16-72-linux"
@@ -11,6 +11,8 @@ optdepends=('nvidia-utils: GPU monitoring and the Acer GPU overclock profile per
             'linux-headers: needed by DKMS to build predator_wmi (use the headers of your kernel)')
 makedepends=('cmake' 'ninja' 'qt6-tools')
 install=predator-sense-linux.install
+source=("90-predator-sense.hook")
+sha256sums=('SKIP')
 _root="$startdir/../.."
 
 build() {
@@ -25,6 +27,7 @@ package() {
     local dst="$pkgdir/usr/src/predator-wmi-$pkgver"
     install -Dm644 "$_root"/kernel/{predator_wmi.c,predator_wmi_uapi.h,Makefile,dkms.conf} -t "$dst"
     sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=\"$pkgver\"/" "$dst/dkms.conf"
+    install -Dm644 "$srcdir/90-predator-sense.hook" "$pkgdir/usr/share/libalpm/hooks/90-predator-sense.hook"
     install -Dm644 "$_root/data/predator-wmi.conf" "$pkgdir/usr/lib/modules-load.d/predator-wmi.conf"
     install -Dm644 "$_root/data/predator-sense-autostart.desktop" "$pkgdir/etc/xdg/autostart/predator-sense.desktop"
     install -Dm644 "$_root/README.md" "$pkgdir/usr/share/doc/predator-sense/README.md"

@@ -4,7 +4,7 @@
 #include <QLoggingCategory>
 #include <QtEndian>
 
-Q_LOGGING_CATEGORY(lcHw, "predator.hw")
+Q_LOGGING_CATEGORY(lcHw, "predator.hw", QtInfoMsg)
 
 using W = WmiDevice;
 

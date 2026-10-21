@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 - `dkms.conf` no longer sets the `CLEAN` option, which DKMS 3 reports as deprecated.
+- The service no longer logs every WMI call; debug messages are off unless enabled with `QT_LOGGING_RULES`.
+- Arch package: the service is started by a pacman hook that runs after DKMS has built the module, so it no longer
+  fails its first start attempts on a fresh install.
 - WMI method IDs and parameter layouts are now confirmed against the firmware's own MOF (BMOF);
   `tools/bmof-verify.py` re-checks them on any machine.
 - `GetGamingKBBacklight` and `SetBatteryHealthControl` results parsed with the layouts declared by the MOF.
