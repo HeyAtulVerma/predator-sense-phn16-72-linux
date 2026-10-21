@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Changed
+- `dkms.conf` no longer sets the `CLEAN` option, which DKMS 3 reports as deprecated.
 - WMI method IDs and parameter layouts are now confirmed against the firmware's own MOF (BMOF);
   `tools/bmof-verify.py` re-checks them on any machine.
 - `GetGamingKBBacklight` and `SetBatteryHealthControl` results parsed with the layouts declared by the MOF.
