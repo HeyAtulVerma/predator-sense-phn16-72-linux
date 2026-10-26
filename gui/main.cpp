@@ -1,4 +1,5 @@
 #include "Backend.h"
+#include "Translator.h"
 
 #include <QAction>
 #include <QActionGroup>
@@ -7,6 +8,7 @@
 #include <QDBusInterface>
 #include <QIcon>
 #include <QMenu>
+#include <QSettings>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
@@ -47,9 +49,15 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    AppTranslator translator;
+    const QString savedLang = QSettings().value(QStringLiteral("ui/language"), QStringLiteral("en")).toString();
+    translator.setActive(savedLang != QStringLiteral("pt"));
+    app.installTranslator(&translator);
+
     QQuickStyle::setStyle(QStringLiteral("Basic"));
-    Backend backend;
+    Backend backend(&translator);
     QQmlApplicationEngine engine;
+    backend.setRetranslateCallback([&engine] { engine.retranslate(); });
     const bool trayAvailable = QSystemTrayIcon::isSystemTrayAvailable();
     engine.rootContext()->setContextProperty(QStringLiteral("backend"), &backend);
     engine.rootContext()->setContextProperty(QStringLiteral("trayAvailable"), trayAvailable);
@@ -101,8 +109,14 @@ int main(int argc, char **argv)
     menu.addSeparator();
     QAction *quitAct = menu.addAction(QObject::tr("Sair"));
     QObject::connect(quitAct, &QAction::triggered, &app, &QCoreApplication::quit);
+    auto updateTrayTexts = [&] {
+        openAct->setText(QObject::tr("Abrir Predator Sense"));
+        quitAct->setText(QObject::tr("Sair"));
+        rebuildModes();
+    };
     QObject::connect(&backend, &Backend::stateChanged, &menu, rebuildModes);
     QObject::connect(&backend, &Backend::infoChanged, &menu, rebuildModes);
+    QObject::connect(&backend, &Backend::languageChanged, &menu, updateTrayTexts);
     rebuildModes();
     tray.setContextMenu(&menu);
     tray.setToolTip(QStringLiteral("Predator Sense"));

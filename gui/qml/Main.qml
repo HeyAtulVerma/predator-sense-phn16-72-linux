@@ -89,15 +89,15 @@ ApplicationWindow {
                 }
                 Rectangle { Layout.fillWidth: true; height: 1; color: Theme.line }
                 Item { Layout.preferredHeight: 10 }
-                NavButton { label: qsTr("Início"); glyph: "◈"; active: win.page === 0; onClicked: win.page = 0 }
-                NavButton { label: qsTr("Ventoinhas"); glyph: "✣"; active: win.page === 1; onClicked: win.page = 1 }
-                NavButton { label: qsTr("Iluminação"); glyph: "✦"; active: win.page === 2; onClicked: win.page = 2 }
-                NavButton { label: qsTr("Monitorização"); glyph: "◔"; active: win.page === 3; onClicked: win.page = 3 }
-                NavButton { label: qsTr("Definições"); glyph: "⚙"; active: win.page === 4; onClicked: win.page = 4 }
+                NavButton { label: (backend.language, qsTr("Início")); glyph: "◈"; active: win.page === 0; onClicked: win.page = 0 }
+                NavButton { label: (backend.language, qsTr("Ventoinhas")); glyph: "✣"; active: win.page === 1; onClicked: win.page = 1 }
+                NavButton { label: (backend.language, qsTr("Iluminação")); glyph: "✦"; active: win.page === 2; onClicked: win.page = 2 }
+                NavButton { label: (backend.language, qsTr("Monitorização")); glyph: "◔"; active: win.page === 3; onClicked: win.page = 3 }
+                NavButton { label: (backend.language, qsTr("Definições")); glyph: "⚙"; active: win.page === 4; onClicked: win.page = 4 }
                 Item { Layout.fillHeight: true }
                 Text {
                     Layout.margins: 18
-                    text: (info.product || "") + "\n" + qsTr("Versão ") + (info.version || "—")
+                    text: (backend.language, ((info.product ? (info.product + "\n") : "") + qsTr("Versão ") + (info.version || backend.appVersion)))
                     color: Theme.textFaint
                     font.pixelSize: 11
                     lineHeight: 1.3
@@ -123,7 +123,7 @@ ApplicationWindow {
                     anchors.rightMargin: 28
                     spacing: 18
                     Text {
-                        text: [qsTr("Início"), qsTr("Ventoinhas"), qsTr("Iluminação"), qsTr("Monitorização"), qsTr("Definições")][win.page]
+                        text: (backend.language, [qsTr("Início"), qsTr("Ventoinhas"), qsTr("Iluminação"), qsTr("Monitorização"), qsTr("Definições")][win.page])
                         color: Theme.text; font.pixelSize: 20; font.weight: Font.DemiBold
                     }
                     Item { Layout.fillWidth: true }
@@ -131,7 +131,7 @@ ApplicationWindow {
                         spacing: 8
                         visible: backend.connected
                         Text { text: st.onAC ? "⚡" : "🔋"; font.pixelSize: 14; color: Theme.textDim; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: st.onAC ? qsTr("Carregador ligado") : qsTr("Na bateria"); color: Theme.textDim; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: (backend.language, (st.onAC ? qsTr("Carregador ligado") : qsTr("Na bateria"))); color: Theme.textDim; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
                     }
                     Rectangle {
                         visible: backend.connected && st.mode !== undefined
@@ -140,7 +140,7 @@ ApplicationWindow {
                         width: modeLbl.implicitWidth + 28
                         color: Qt.rgba(Theme.modeColor(st.mode).r, Theme.modeColor(st.mode).g, Theme.modeColor(st.mode).b, 0.16)
                         border.color: Theme.modeColor(st.mode)
-                        Text { id: modeLbl; anchors.centerIn: parent; text: backend.modeName(st.mode); color: Theme.text; font.pixelSize: 13; font.weight: Font.DemiBold }
+                        Text { id: modeLbl; anchors.centerIn: parent; text: (backend.language, backend.modeName(st.mode)); color: Theme.text; font.pixelSize: 13; font.weight: Font.DemiBold }
                     }
                     BusyIndicator { running: backend.busy; visible: running; implicitWidth: 26; implicitHeight: 26 }
                 }
@@ -152,10 +152,42 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 44
                 color: "#3a1414"
-                Text {
+                RowLayout {
                     anchors.centerIn: parent
-                    text: qsTr("Serviço predator-sensed não está a correr. Ative-o com: sudo systemctl enable --now predator-sensed")
-                    color: "#ffd0d0"; font.pixelSize: 13
+                    spacing: 10
+                    Text {
+                        text: qsTr("Serviço predator-sensed não está a correr. Ative-o com: sudo systemctl enable --now predator-sensed")
+                        color: "#ffd0d0"; font.pixelSize: 13
+                    }
+                    Rectangle {
+                        id: copyBtn
+                        property bool copied: false
+                        implicitWidth: 26; implicitHeight: 26; radius: 4
+                        color: copyMa.containsMouse ? "#5a2424" : "#4a1c1c"
+                        border.color: copyBtn.copied ? Theme.good : "#7a3030"
+                        Text {
+                            anchors.centerIn: parent
+                            text: copyBtn.copied ? "✓" : "📋"
+                            font.pixelSize: 13
+                            color: copyBtn.copied ? Theme.good : "#ffd0d0"
+                        }
+                        MouseArea {
+                            id: copyMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                backend.copyToClipboard("sudo systemctl enable --now predator-sensed")
+                                copyBtn.copied = true
+                                copyTimer.restart()
+                            }
+                        }
+                        Timer {
+                            id: copyTimer
+                            interval: 2000
+                            onTriggered: copyBtn.copied = false
+                        }
+                    }
                 }
             }
 
@@ -163,11 +195,10 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 currentIndex: win.page
-                enabled: backend.connected
-                HomePage {}
-                FanPage {}
-                LightingPage {}
-                MonitorPage {}
+                HomePage { enabled: backend.connected }
+                FanPage { enabled: backend.connected }
+                LightingPage { enabled: backend.connected }
+                MonitorPage { enabled: backend.connected }
                 SettingsPage {}
             }
         }

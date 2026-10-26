@@ -13,6 +13,7 @@ ScrollView {
     readonly property var modes: info.modes || []
 
     function modeDescription(m) {
+        var _ = backend.language
         switch (m) {
         case 0: return qsTr("Silencioso, para tarefas leves")
         case 1: return qsTr("Equilíbrio entre ruído e desempenho")

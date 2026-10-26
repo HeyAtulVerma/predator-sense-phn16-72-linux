@@ -1,10 +1,13 @@
 #include "Backend.h"
+#include "Translator.h"
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
 #include <QDBusVariant>
+#include <QClipboard>
+#include <QGuiApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSettings>
@@ -29,8 +32,12 @@ static QString toJson(const QVariantMap &m)
     return QString::fromUtf8(QJsonDocument(QJsonObject::fromVariantMap(m)).toJson(QJsonDocument::Compact));
 }
 
-Backend::Backend(QObject *parent) : QObject(parent)
+Backend::Backend(AppTranslator *translator, QObject *parent)
+    : QObject(parent), m_translator(translator)
 {
+    if (m_translator)
+        m_translator->setActive(language() != QStringLiteral("pt"));
+
     m_sensorTimer.setInterval(1500);
     connect(&m_sensorTimer, &QTimer::timeout, this, &Backend::pollSensors);
     m_reconnectTimer.setInterval(3000);
@@ -169,4 +176,32 @@ void Backend::setFahrenheit(bool on)
 {
     QSettings().setValue(QStringLiteral("ui/fahrenheit"), on);
     Q_EMIT prefsChanged();
+}
+
+QString Backend::language() const
+{
+    return QSettings().value(QStringLiteral("ui/language"), QStringLiteral("en")).toString();
+}
+
+void Backend::setLanguage(const QString &lang)
+{
+    if (lang == language())
+        return;
+
+    QSettings().setValue(QStringLiteral("ui/language"), lang);
+    if (m_translator)
+        m_translator->setActive(lang != QStringLiteral("pt"));
+
+    if (m_retranslateCb)
+        m_retranslateCb();
+
+    Q_EMIT languageChanged();
+    Q_EMIT prefsChanged();
+}
+
+void Backend::copyToClipboard(const QString &text)
+{
+    if (QClipboard *clipboard = QGuiApplication::clipboard()) {
+        clipboard->setText(text);
+    }
 }

@@ -4,7 +4,7 @@ if(QT_KNOWN_POLICY_QTP0004)
     qt_policy(SET QTP0004 NEW)
 endif()
 
-qt_add_executable(predator-sense main.cpp Backend.cpp Backend.h)
+qt_add_executable(predator-sense main.cpp Backend.cpp Backend.h Translator.cpp Translator.h)
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(predator-sense

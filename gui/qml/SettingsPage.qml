@@ -111,6 +111,87 @@ ScrollView {
                     title: qsTr("Temperatura em Fahrenheit")
                     PSwitch { checked: backend.fahrenheit; onToggled: backend.fahrenheit = checked }
                 }
+                Divider {}
+                OptionRow {
+                    title: qsTr("Idioma")
+                    description: qsTr("Selecione o idioma da aplicação.")
+                    ComboBox {
+                        id: langCombo
+                        model: ["English", "Português"]
+                        currentIndex: backend.language === "pt" ? 1 : 0
+                        implicitWidth: 140
+                        implicitHeight: 36
+                        onActivated: (index) => {
+                            backend.language = index === 1 ? "pt" : "en"
+                        }
+                        background: Rectangle {
+                            color: langCombo.pressed ? Theme.panelHi : Theme.bgDeep
+                            border.color: langCombo.hovered ? Theme.accent : Theme.line
+                            border.width: 1
+                            radius: 4
+                        }
+                        contentItem: Text {
+                            leftPadding: 12
+                            rightPadding: langCombo.indicator.width + 12
+                            text: langCombo.displayText
+                            font.pixelSize: 13
+                            font.family: Theme.font
+                            color: Theme.text
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
+                        indicator: Text {
+                            x: langCombo.width - width - 12
+                            y: (langCombo.height - height) / 2
+                            text: "▾"
+                            color: langCombo.hovered ? Theme.accent : Theme.textDim
+                            font.pixelSize: 14
+                        }
+                        popup: Popup {
+                            parent: Overlay.overlay
+                            x: langCombo.mapToItem(Overlay.overlay, 0, 0).x
+                            y: langCombo.mapToItem(Overlay.overlay, 0, 0).y + langCombo.height + 4
+                            width: langCombo.width
+                            implicitHeight: contentItem.implicitHeight + 8
+                            padding: 4
+                            background: Rectangle {
+                                color: Theme.bgDeep
+                                border.color: Theme.line
+                                border.width: 1
+                                radius: 4
+                            }
+                            contentItem: ListView {
+                                clip: true
+                                implicitHeight: contentHeight
+                                model: langCombo.popup.visible ? langCombo.delegateModel : null
+                                currentIndex: langCombo.highlightedIndex
+                            }
+                        }
+                        delegate: ItemDelegate {
+                            id: del
+                            width: langCombo.width - 8
+                            implicitHeight: 32
+                            onClicked: {
+                                langCombo.currentIndex = index
+                                backend.language = index === 1 ? "pt" : "en"
+                                langCombo.popup.close()
+                            }
+                            background: Rectangle {
+                                color: del.highlighted ? Theme.panelHi : "transparent"
+                                radius: 3
+                            }
+                            contentItem: Text {
+                                leftPadding: 8
+                                text: modelData
+                                color: del.highlighted ? Theme.accent : Theme.text
+                                font.pixelSize: 13
+                                font.family: Theme.font
+                                font.weight: langCombo.currentIndex === index ? Font.DemiBold : Font.Normal
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+                    }
+                }
             }
         }
 

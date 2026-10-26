@@ -19,10 +19,13 @@ class Backend : public QObject
     // UI preferences (per user, ~/.config/predator-sense/predator-sense.conf)
     Q_PROPERTY(bool closeToTray READ closeToTray WRITE setCloseToTray NOTIFY prefsChanged)
     Q_PROPERTY(bool fahrenheit READ fahrenheit WRITE setFahrenheit NOTIFY prefsChanged)
+    Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
+    Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
 
 public:
-    explicit Backend(QObject *parent = nullptr);
+    explicit Backend(class AppTranslator *translator = nullptr, QObject *parent = nullptr);
 
+    QString appVersion() const { return QStringLiteral(PREDATOR_VERSION); }
     bool connected() const { return m_connected; }
     QVariantMap info() const { return m_info; }
     QVariantMap state() const { return m_state; }
@@ -34,6 +37,9 @@ public:
     void setCloseToTray(bool on);
     bool fahrenheit() const;
     void setFahrenheit(bool on);
+    QString language() const;
+    void setLanguage(const QString &lang);
+    void setRetranslateCallback(std::function<void()> cb) { m_retranslateCb = std::move(cb); }
 
     Q_INVOKABLE void setMode(int mode);
     Q_INVOKABLE void setBatteryMode(int mode);
@@ -42,6 +48,7 @@ public:
     Q_INVOKABLE void setOption(const QString &key, const QVariant &value);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE static QString modeName(int mode);
+    Q_INVOKABLE void copyToClipboard(const QString &text);
 
 Q_SIGNALS:
     void connectedChanged();
@@ -51,6 +58,7 @@ Q_SIGNALS:
     void busyChanged();
     void monitoringChanged();
     void prefsChanged();
+    void languageChanged();
     void errorOccurred(const QString &message);
 
 private Q_SLOTS:
@@ -60,6 +68,8 @@ private Q_SLOTS:
 
 private:
     void callAsync(const QString &method, const QVariantList &args);
+    class AppTranslator *m_translator = nullptr;
+    std::function<void()> m_retranslateCb;
     std::unique_ptr<QDBusInterface> m_iface;
     bool m_connected = false;
     QVariantMap m_info, m_state, m_sensors;

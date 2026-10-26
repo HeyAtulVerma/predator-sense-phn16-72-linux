@@ -30,6 +30,7 @@ warn() { printf '\033[1;33m!!\033[0m %s\n' "$*" >&2; }
 # ------------------------------------------------------------------ distribution
 # shellcheck source=/dev/null
 . /etc/os-release
+VERSION="$(sed -n 's/^project([^ ]* VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)"
 FAMILY=""
 for id in $ID ${ID_LIKE:-}; do
     case "$id" in
@@ -85,6 +86,29 @@ $SUDO $INSTALL $PKGS
 
 # ------------------------------------------------------------------ build
 say "Building"
+# Clean stale CMake cache if source directory was moved or copied
+if [ -f "$SRC/build-release/CMakeCache.txt" ]; then
+    if ! grep -q "CMAKE_CACHEFILE_DIR:INTERNAL=$SRC/build-release" "$SRC/build-release/CMakeCache.txt" 2>/dev/null || \
+       ! grep -q "CMAKE_HOME_DIRECTORY:INTERNAL=$SRC" "$SRC/build-release/CMakeCache.txt" 2>/dev/null; then
+        say "Detected moved source or build directory; clearing stale build-release cache"
+        rm -rf "$SRC/build-release"
+    fi
+fi
+
+# Check power source and advise user
+if [ -d /sys/class/power_supply ]; then
+    ON_AC=0
+    for ps in /sys/class/power_supply/*; do
+        if [ -f "$ps/online" ] && [ "$(cat "$ps/online" 2>/dev/null)" = "1" ]; then
+            ON_AC=1
+            break
+        fi
+    done
+    if [ $ON_AC -eq 0 ] && ls /sys/class/power_supply/BAT* >/dev/null 2>&1; then
+        printf '\033[1;31m!! [BATTERY WARNING]\033[0m Laptop is running on battery. Please connect the AC charger to unlock Turbo/Performance modes.\n'
+    fi
+fi
+
 cmake -S "$SRC" -B "$SRC/build-release" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
       -DBUILD_TESTING=ON >/dev/null
 cmake --build "$SRC/build-release"
@@ -124,10 +148,11 @@ if grep -rqs '^\s*blacklist\s\+acer_wmi' /etc/modprobe.d/; then
 fi
 
 if command -v systemctl >/dev/null && [ -d /run/systemd/system ]; then
-    say "Enabling the service"
+    say "Enabling and starting the service"
     $SUDO systemctl daemon-reload
     $SUDO systemctl reload dbus 2>/dev/null || true
-    $SUDO systemctl enable --now predator-sensed.service
+    $SUDO systemctl enable predator-sensed.service
+    $SUDO systemctl restart predator-sensed.service
 else
     warn "systemd not detected: predator-sensed starts on demand through D-Bus activation."
 fi

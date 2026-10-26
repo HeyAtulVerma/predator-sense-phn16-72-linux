@@ -48,16 +48,19 @@ ScrollView {
         }
     }
 
-    readonly property var effects: [
-        { id: "static", name: qsTr("Estático"), color: false, dir: false },
-        { id: "breathing", name: qsTr("Respiração"), color: true, dir: false },
-        { id: "neon", name: qsTr("Néon"), color: false, dir: false },
-        { id: "wave", name: qsTr("Onda"), color: false, dir: true },
-        { id: "shifting", name: qsTr("Deslocamento"), color: true, dir: true },
-        { id: "zoom", name: qsTr("Zoom"), color: true, dir: false },
-        { id: "meteor", name: qsTr("Meteoro"), color: true, dir: false },
-        { id: "twinkling", name: qsTr("Cintilação"), color: true, dir: false }
-    ]
+    readonly property var effects: {
+        var _ = backend.language
+        return [
+            { id: "static", name: qsTr("Estático"), color: false, dir: false },
+            { id: "breathing", name: qsTr("Respiração"), color: true, dir: false },
+            { id: "neon", name: qsTr("Néon"), color: false, dir: false },
+            { id: "wave", name: qsTr("Onda"), color: false, dir: true },
+            { id: "shifting", name: qsTr("Deslocamento"), color: true, dir: true },
+            { id: "zoom", name: qsTr("Zoom"), color: true, dir: false },
+            { id: "meteor", name: qsTr("Meteoro"), color: true, dir: false },
+            { id: "twinkling", name: qsTr("Cintilação"), color: true, dir: false }
+        ]
+    }
     readonly property var current: effects.find(e => e.id === effect) || effects[0]
 
     // ---------------------------------------------------------- keyboard preview

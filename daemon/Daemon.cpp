@@ -201,6 +201,9 @@ void Daemon::saveState()
 
 bool Daemon::onAC() const
 {
+    if (m_opt.simulate)
+        return true;
+
     QDir ps(QStringLiteral("/sys/class/power_supply"));
     bool sawMains = false;
     for (const QString &d : ps.entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
